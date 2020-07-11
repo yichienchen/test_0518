@@ -16,9 +16,15 @@ import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.RequiresApi;
+
+import java.util.Arrays;
+
+import static com.example.test_0518.Function.byte2HexStr;
+import static com.example.test_0518.Function.intToByte;
 import static com.example.test_0518.MainActivity.AdvertiseCallbacks_map;
 import static com.example.test_0518.MainActivity.TAG;
 
+import static com.example.test_0518.MainActivity.data_;
 import static com.example.test_0518.MainActivity.extendedAdvertiseCallbacks_map;
 import static com.example.test_0518.MainActivity.mAdvertiseCallback;
 import static com.example.test_0518.MainActivity.mBluetoothLeAdvertiser;
@@ -32,8 +38,27 @@ import static com.example.test_0518.MainActivity.id_byte;
 public class Service_Adv extends Service {
     static int packet_num;
     static int pdu_len;
-    static String test = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    static String test = "123456";
+
+//    static String test = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
+//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" ;
+
+
+//    static String test = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+//            +"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
+//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
+//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
+//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
+//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"+
+//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"+
+//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
+//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
+//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
+//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
+//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" + //1560
+//            "";
+
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     public Service_Adv() {
 
@@ -63,15 +88,22 @@ public class Service_Adv extends Service {
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void startAdvertising(){
         Log.e(TAG, "Service: Starting Advertising");
-
-
         if(version){
-            pdu_len=18;
-            packet_num = (test.length()/pdu_len)+1;
+            pdu_len=16;  //+3: without name
+            if(test.length()%pdu_len!=0){
+                packet_num = test.length()/pdu_len+1;
+            }else {
+                packet_num = test.length()/pdu_len;
+            }
         }else {
-            pdu_len=1632;
-            packet_num = (test.length()/pdu_len)+1;
+            pdu_len=1630;
+            if(test.length()%pdu_len!=0){
+                packet_num = test.length()/pdu_len+1;
+            }else {
+                packet_num = test.length()/pdu_len;
+            }
         }
+        data_ = Adv_data_seg();
 
         if (mAdvertiseCallback == null) {
             if (mBluetoothLeAdvertiser != null) {
@@ -89,14 +121,15 @@ public class Service_Adv extends Service {
     public void startBroadcast(Integer order) {
         String localName =  String.valueOf(order) ;
         BluetoothAdapter.getDefaultAdapter().setName(localName);
-        Log.e(TAG,"localName:"+localName);
+
 
         //BLE4.0
         if (version) {
             AdvertiseSettings settings = buildAdvertiseSettings();
             AdvertiseData advertiseData = buildAdvertiseData(order);
             AdvertiseData scanResponse = buildAdvertiseData_scan_response(order);
-            mBluetoothLeAdvertiser.startAdvertising(settings, advertiseData, new Service_Adv.MyAdvertiseCallback(order));
+//            mBluetoothLeAdvertiser.startAdvertising(settings, advertiseData, new Service_Adv.MyAdvertiseCallback(order));
+            mBluetoothLeAdvertiser.startAdvertising(settings, advertiseData, scanResponse , new Service_Adv.MyAdvertiseCallback(order));
 
         } else {
             //BLE 5.0
@@ -166,7 +199,7 @@ public class Service_Adv extends Service {
         }
     }
 
-    public static byte[][] Adv_data_seg(int x){
+    public static byte[][] Adv_data_seg(){
         StringBuilder data = new StringBuilder(test);
         for(int c=data.length();c%pdu_len!=0;c++){
             data.append("0");
@@ -174,12 +207,23 @@ public class Service_Adv extends Service {
         byte[] data_byte = data.toString().getBytes();
         byte[][] adv_byte = new byte[packet_num][pdu_len+id_byte.length+1];
 
-        for (int counter = 1 ; counter >0; counter = counter-pdu_size) {
 
+        for (int counter = 0 ; counter <packet_num ; counter++) {
+            adv_byte[counter][0]= intToByte(counter);
+            System.arraycopy(id_byte, 0, adv_byte[counter], 1, id_byte.length);
+            if((counter+1)*pdu_len<=data_byte.length){
+                byte[] register = Arrays.copyOfRange(data_byte, counter*pdu_len ,(counter+1)*pdu_len);
+                System.arraycopy(register, 0, adv_byte[counter], id_byte.length+1, register.length);
+            }else {
+                byte[] register = Arrays.copyOfRange(data_byte, counter*pdu_len ,data_byte.length);
+                System.arraycopy(register, 0, adv_byte[counter], id_byte.length, register.length);
+            }
         }
 
-        System.arraycopy(id_byte, 0, adv_byte, 0, id_byte.length);
-        System.arraycopy(data_byte, 0, adv_byte, id_byte.length, data_byte.length);
+//        for (int counter = 0 ; counter <packet_num ; counter++) {
+//            Log.e(TAG,counter + " adv_byte: " + byte2HexStr(adv_byte[counter]));
+//        }
+
         return adv_byte;
     }
 
@@ -227,14 +271,16 @@ public class Service_Adv extends Service {
         AdvertiseData.Builder dataBuilder = new AdvertiseData.Builder();
         dataBuilder.setIncludeDeviceName(true);
         dataBuilder.setIncludeTxPowerLevel(false);
-        dataBuilder.addManufacturerData(0xffff,Adv_data_seg(order));
+        dataBuilder.addManufacturerData(0xffff,data_[order])
+        .addManufacturerData(0xffff,data_[order])
+        .addManufacturerData(0xffff,data_[order]);
 
         return dataBuilder.build();
     }
 
     static AdvertiseData buildAdvertiseData_scan_response(Integer order) {
         AdvertiseData.Builder dataBuilder = new AdvertiseData.Builder();
-        dataBuilder.addManufacturerData(0xffff,Adv_data_seg(order));
+        dataBuilder.addManufacturerData(0xffff,data_[order]);
         return dataBuilder.build();
     }
 
@@ -305,11 +351,14 @@ public class Service_Adv extends Service {
     }
 
     static AdvertiseData buildAdvertiseData_extended(int order) {
+
         AdvertiseData.Builder dataBuilder = new AdvertiseData.Builder();
         dataBuilder.setIncludeDeviceName(true);
 //        Log.e(TAG,"data: "+Data_adv.getBytes().length);
 //        dataBuilder.addManufacturerData(0xffff,adv_data.get(order).getBytes());
+        Log.e(TAG,"data: "+ data_[order].length);
         dataBuilder.addManufacturerData(0xffff,test.getBytes());
+//        dataBuilder.addManufacturerData(0xffff,data_[order]);
         return dataBuilder.build();
     }
 

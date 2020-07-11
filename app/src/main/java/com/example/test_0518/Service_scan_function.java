@@ -35,12 +35,15 @@ public class Service_scan_function {
 
     static ArrayList<Integer> rssi_level_1 = new ArrayList<>();  //rssi>-70
     static ArrayList<Integer> rssi_level_2 = new ArrayList<>();  //-70>rssi>-90
-    static ArrayList<Integer> rssi_level_3 = new ArrayList<>();  //-90<>ssi
+    static ArrayList<Integer> rssi_level_3 = new ArrayList<>();  //rssi<-90
 
     static ScanCallback leScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result){
             /*----------------------------------------------------------------contact event----------------------------------------------------------------*/
+
+            Log.e(TAG,"received_data: " + byte2HexStr(result.getScanRecord().getManufacturerSpecificData(0xffff)));
+
             String received_data = byte2HexStr(Objects.requireNonNull(Objects.requireNonNull(result.getScanRecord()).getManufacturerSpecificData(0xffff)));
             Log.e(TAG,"received_data: "+ received_data);
             received_data = hexToAscii(received_data).subSequence(7,23).toString();
@@ -57,7 +60,7 @@ public class Service_scan_function {
             String msg;
 
             msg="Device Name: " + result.getDevice().getName() +"\n"+ "rssi: " + result.getRssi() +"\n" + "add: " + result.getDevice().getAddress() +"\n"
-                    + "time: " + currentTime +"\n" + "data: " + received_data +"\n\n" ;
+                    + "time: " + currentTime +"\n" + "data: " + received_data +"\n\n";
 
             peripheralTextView.append(msg);
 
@@ -156,8 +159,8 @@ public class Service_scan_function {
                     received_time_interval.add(time_difference_(received_time_Calendar.get(i-1),received_time_Calendar.get(i)));
                 }
             }
-//            Log.e(TAG,"received_time_interval.length: "+received_time_interval.size());
-//            Log.e(TAG,"received_time_interval"+received_time_interval);
+            Log.e(TAG,"received_time_interval.length: "+received_time_interval.size());
+            Log.e(TAG,"received_time_interval"+received_time_interval);
 
             /*-------------------------------------------------------interval END--------------------------------------------------------------------------*/
 

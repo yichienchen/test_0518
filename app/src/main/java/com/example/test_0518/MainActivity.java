@@ -41,8 +41,10 @@ import java.util.TreeMap;
 
 public class MainActivity extends AppCompatActivity {
 
-    static int ManufacturerData_size = 24 - 3;  //ManufacturerData長度
+    static int ManufacturerData_size = 24;  //ManufacturerData長度
     static String TAG = "chien";
+
+    public static byte[][] data_;
 
     static boolean version = false;  //true: 4.0 , false:5.0
 

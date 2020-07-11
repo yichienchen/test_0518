@@ -5,14 +5,19 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 
+import androidx.annotation.RequiresApi;
+
 import java.util.ArrayList;
 
+import static com.example.test_0518.Function.byte2HexStr;
 import static com.example.test_0518.MainActivity.ManufacturerData_size;
 import static com.example.test_0518.MainActivity.TAG;
+import static com.example.test_0518.MainActivity.data_;
 import static com.example.test_0518.MainActivity.id_byte;
 import static com.example.test_0518.MainActivity.list_device;
 import static com.example.test_0518.MainActivity.list_device_detail;
@@ -25,6 +30,7 @@ import static com.example.test_0518.MainActivity.startScanningButton;
 import static com.example.test_0518.MainActivity.stopScanningButton;
 import static com.example.test_0518.MainActivity.time_interval;
 import static com.example.test_0518.MainActivity.time_previous;
+import static com.example.test_0518.Service_Adv.test;
 import static com.example.test_0518.Service_scan_function.leScanCallback;
 import static com.example.test_0518.Service_scan_function.received_time;
 import static com.example.test_0518.Service_scan_function.received_time_Calendar;
@@ -32,6 +38,7 @@ import static com.example.test_0518.Service_scan_function.received_time_interval
 
 public class Service_Scan extends Service {
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public Service_Scan() {
         Log.e(TAG,"Service_Scan start");
         startScanning();
@@ -42,6 +49,7 @@ public class Service_Scan extends Service {
             }
         });
         startScanningButton.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
             public void onClick(View v) {
                 startScanning();
             }
@@ -54,6 +62,7 @@ public class Service_Scan extends Service {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public void startScanning() {
         received_time.clear();
         received_time_interval.clear();
@@ -92,26 +101,26 @@ public class Service_Scan extends Service {
         startScanningButton.setVisibility(View.INVISIBLE);
         stopScanningButton.setVisibility(View.VISIBLE);
 
-        StringBuilder data = new StringBuilder("0");
-        for(int j=data.length();(j+id_byte.length)%ManufacturerData_size!=0;j++){
-            data.append("0");
-        }
-
-        byte[] data_all = new byte[id_byte.length + data.toString().getBytes().length];
+        byte[] data_all = new byte[ManufacturerData_size];
         System.arraycopy(id_byte, 0, data_all, 1, id_byte.length);
-        System.arraycopy(data.toString().getBytes(), 0, data_all, id_byte.length, data.toString().getBytes().length);
-        // ManufacturerData : packet編號(1) + id(4) + data(19)
 
-        byte[] data_mask = new byte[] {0x00,0x11,0x11,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+
+        byte[] data_mask = new byte[] {0x00,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 //        Log.e(TAG,"data_all: "+ byte2HexStr(data_all)+"\n"
 //                +"data_mask: "+byte2HexStr(data_mask));
-        ScanFilter UUID_Filter_M = new ScanFilter.Builder().setManufacturerData(0xffff,data_all,data_mask).build();
+
+
+        ScanFilter Mau_filter_extended = new ScanFilter.Builder().setManufacturerData(0xffff,test.getBytes()).build();
+
+        ScanFilter Mau_filter_legacy = new ScanFilter.Builder().setManufacturerData(0xffff,data_all,data_mask).build();
         ArrayList<ScanFilter> filters = new ArrayList<>();
-        filters.add(UUID_Filter_M);
+        filters.add(Mau_filter_extended);
+        filters.add(Mau_filter_legacy);
 
 
         ScanSettings settings = new ScanSettings.Builder()
                 .setScanMode(2)
+                .setLegacy(false)
 //                .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)  //Fails to start power optimized scan as this feature is not supported
 //                .setMatchMode()
 //                .setNumOfMatches(1)
