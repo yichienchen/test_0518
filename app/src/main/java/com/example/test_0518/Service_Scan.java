@@ -24,6 +24,8 @@ import static com.example.test_0518.MainActivity.list_device_detail;
 import static com.example.test_0518.MainActivity.mBluetoothLeScanner;
 import static com.example.test_0518.MainActivity.matrix;
 import static com.example.test_0518.MainActivity.mean_total;
+import static com.example.test_0518.MainActivity.num_list;
+import static com.example.test_0518.MainActivity.num_time;
 import static com.example.test_0518.MainActivity.num_total;
 import static com.example.test_0518.MainActivity.peripheralTextView;
 import static com.example.test_0518.MainActivity.startScanningButton;
@@ -35,6 +37,9 @@ import static com.example.test_0518.Service_scan_function.leScanCallback;
 import static com.example.test_0518.Service_scan_function.received_time;
 import static com.example.test_0518.Service_scan_function.received_time_Calendar;
 import static com.example.test_0518.Service_scan_function.received_time_interval;
+import static com.example.test_0518.Service_scan_function.rssi_level_1;
+import static com.example.test_0518.Service_scan_function.rssi_level_2;
+import static com.example.test_0518.Service_scan_function.rssi_level_3;
 
 public class Service_Scan extends Service {
 
@@ -79,6 +84,14 @@ public class Service_Scan extends Service {
         mean_total.clear();
         matrix.clear();
         time_interval.clear();
+
+        rssi_level_1.clear();
+        rssi_level_2.clear();
+        rssi_level_3.clear();
+
+        num_list.clear();
+        num_time.clear();
+
 
         long zero=0;
         for (int j=0;j<100;j++){  //100 : mac address數量上限
@@ -132,6 +145,12 @@ public class Service_Scan extends Service {
 
     public void stopScanning() {
         Log.e(TAG,"stopping scanning");
+
+        Log.e(TAG,"list_device: "+list_device);
+        for(int i =0 ; i< list_device.size() ; i++){
+//            Log.e(TAG,"time_interval: "+time_interval.get(i)+rssi_level_1.get(i)+","+rssi_level_2.get(i)+","+rssi_level_3.get(i));
+        }
+
         peripheralTextView.append("Stopped Scanning");
         startScanningButton.setVisibility(View.VISIBLE);
         stopScanningButton.setVisibility(View.INVISIBLE);

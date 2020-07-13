@@ -12,12 +12,14 @@ import android.bluetooth.le.PeriodicAdvertisingParameters;
 import android.content.Intent;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.ParcelUuid;
 import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.RequiresApi;
 
 import java.util.Arrays;
+import java.util.UUID;
 
 import static com.example.test_0518.Function.byte2HexStr;
 import static com.example.test_0518.Function.intToByte;
@@ -38,25 +40,14 @@ import static com.example.test_0518.MainActivity.id_byte;
 public class Service_Adv extends Service {
     static int packet_num;
     static int pdu_len;
-    static String test = "123456";
+    int count =0;
+//    static String test = "123456";
 
-//    static String test = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
-//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" ;
+//    static String test = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+//    static String test = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+    static String test = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc";
+//
 
-
-//    static String test = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-//            +"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
-//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
-//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
-//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
-//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"+
-//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"+
-//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
-//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
-//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
-//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
-//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" + //1560
-//            "";
 
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -72,6 +63,7 @@ public class Service_Adv extends Service {
         });
         startAdvButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                count=0;
                 startAdvertising();
             }
         });
@@ -96,7 +88,7 @@ public class Service_Adv extends Service {
                 packet_num = test.length()/pdu_len;
             }
         }else {
-            pdu_len=1630;
+            pdu_len=240;
             if(test.length()%pdu_len!=0){
                 packet_num = test.length()/pdu_len+1;
             }else {
@@ -129,7 +121,7 @@ public class Service_Adv extends Service {
             AdvertiseData advertiseData = buildAdvertiseData(order);
             AdvertiseData scanResponse = buildAdvertiseData_scan_response(order);
 //            mBluetoothLeAdvertiser.startAdvertising(settings, advertiseData, new Service_Adv.MyAdvertiseCallback(order));
-            mBluetoothLeAdvertiser.startAdvertising(settings, advertiseData, scanResponse , new Service_Adv.MyAdvertiseCallback(order));
+            mBluetoothLeAdvertiser.startAdvertising(settings, advertiseData , new Service_Adv.MyAdvertiseCallback(order));
 
         } else {
             //BLE 5.0
@@ -142,7 +134,7 @@ public class Service_Adv extends Service {
 //                    periodicData,0,0,new ExtendedAdvertiseCallback(order));
 
             mBluetoothLeAdvertiser.startAdvertisingSet(parameters,advertiseData_extended,null,
-                    null,null,0,0,new ExtendedAdvertiseCallback(order));
+                    null,null,0,200,new ExtendedAdvertiseCallback(order));
         }
     }
 
@@ -269,7 +261,7 @@ public class Service_Adv extends Service {
 
     static AdvertiseData buildAdvertiseData(Integer order) {
         AdvertiseData.Builder dataBuilder = new AdvertiseData.Builder();
-        dataBuilder.setIncludeDeviceName(true);
+        dataBuilder.setIncludeDeviceName(false);
         dataBuilder.setIncludeTxPowerLevel(false);
         dataBuilder.addManufacturerData(0xffff,data_[order])
         .addManufacturerData(0xffff,data_[order])
@@ -305,7 +297,8 @@ public class Service_Adv extends Service {
             else if (status==AdvertisingSetCallback.ADVERTISE_FAILED_TOO_MANY_ADVERTISERS)
                 Log.e(TAG, "ADVERTISE_FAILED_TOO_MANY_ADVERTISERS");
             else if (status==AdvertisingSetCallback.ADVERTISE_SUCCESS) {
-                Log.e(TAG,   "ADVERTISE_SUCCESS" + "(" + _order + ")");
+                count=count+1;
+                Log.e(TAG,   "ADVERTISE_SUCCESS" + "(" + _order + ")"+count);
                 startAdvButton.setVisibility(View.INVISIBLE);
                 stopAdvButton.setVisibility(View.VISIBLE);
                 extendedAdvertiseCallbacks_map.put(_order,this);
@@ -321,6 +314,16 @@ public class Service_Adv extends Service {
             Log.e(TAG,"onAdvertisingEnabled: " + enable + "("+ _order +")");
             stopAdvButton.setVisibility(View.INVISIBLE);
             startAdvButton.setVisibility(View.VISIBLE);
+            if (mAdvertiseCallback == null) {
+                if (mBluetoothLeAdvertiser != null) {
+                    for (int q=0;q<packet_num;q++){  //x
+                        if(count<50){
+                            stopBroadcast(q);
+                            startBroadcast(q);
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -353,11 +356,21 @@ public class Service_Adv extends Service {
     static AdvertiseData buildAdvertiseData_extended(int order) {
 
         AdvertiseData.Builder dataBuilder = new AdvertiseData.Builder();
-        dataBuilder.setIncludeDeviceName(true);
+        dataBuilder.setIncludeDeviceName(false);
 //        Log.e(TAG,"data: "+Data_adv.getBytes().length);
-//        dataBuilder.addManufacturerData(0xffff,adv_data.get(order).getBytes());
+//
         Log.e(TAG,"data: "+ data_[order].length);
-        dataBuilder.addManufacturerData(0xffff,test.getBytes());
+        dataBuilder.addManufacturerData(0xffff,data_[order]);
+        ParcelUuid pUuid1 = new ParcelUuid(UUID.fromString("00001111-0000-1000-8000-00805F9B34FB"));
+        ParcelUuid pUuid2 = new ParcelUuid(UUID.fromString("00002222-0000-1000-8000-00805F9B34FB"));
+        ParcelUuid pUuid3 = new ParcelUuid(UUID.fromString("00003333-0000-1000-8000-00805F9B34FB"));
+        ParcelUuid pUuid4 = new ParcelUuid(UUID.fromString("00004444-0000-1000-8000-00805F9B34FB"));
+        ParcelUuid pUuid5 = new ParcelUuid(UUID.fromString("00005555-0000-1000-8000-00805F9B34FB"));
+        dataBuilder.addServiceData(pUuid1,data_[order]);
+        dataBuilder.addServiceData(pUuid2,data_[order]);
+        dataBuilder.addServiceData(pUuid3,data_[order]);
+        dataBuilder.addServiceData(pUuid4,data_[order]);
+        dataBuilder.addServiceData(pUuid5,data_[order]);
 //        dataBuilder.addManufacturerData(0xffff,data_[order]);
         return dataBuilder.build();
     }

@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static byte[][] data_;
 
-    static boolean version = false;  //true: 4.0 , false:5.0
+    static boolean version = true;  //true: 4.0 , false:5.0
 
     static byte[] id_byte = new byte[]{0x10, 0x5c, 0x34, 0x72, 0x4f, 0x2f, 0x1d};
 
@@ -60,6 +60,9 @@ public class MainActivity extends AppCompatActivity {
     static ArrayList<Integer> num_total = new ArrayList<>();
     static ArrayList<Long> time_previous = new ArrayList<>();
     static ArrayList<Long> mean_total = new ArrayList<>();
+
+    static ArrayList<ArrayList<Long>> num_list = new ArrayList<>();
+    static  ArrayList<ArrayList<Long>> num_time = new ArrayList<>();
 
 
     static Map<Integer, AdvertiseCallback> AdvertiseCallbacks_map;
