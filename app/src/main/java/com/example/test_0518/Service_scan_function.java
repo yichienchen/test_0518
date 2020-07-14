@@ -199,6 +199,12 @@ public class Service_scan_function {
                 num_list.get(index).add((long) 0);
                 num_list.get(index).add((long) 0);
                 num_list.get(index).add((long) 0);
+                num_list.get(index).add((long) 0);
+                num_list.get(index).add((long) 0);
+                num_list.get(index).add((long) 0);
+                num_list.get(index).add((long) 0);
+                num_list.get(index).add((long) 0);
+                num_list.get(index).add((long) 0);
                 num_time.add(new ArrayList<Long>());
             }
 
@@ -209,7 +215,7 @@ public class Service_scan_function {
 
 
 
-            if(num_list.get(index).size()==10 && !num_list.get(index).contains((long)0)){
+            if(num_list.get(index).size()==16 && !num_list.get(index).contains((long)0)){
 
                 long max = Collections.max(num_list.get(index));
                 long min = Collections.min(num_list.get(index));
@@ -227,6 +233,12 @@ public class Service_scan_function {
                 num_list.get(index).set(7,(long)0);
                 num_list.get(index).set(8,(long)0);
                 num_list.get(index).set(9,(long)0);
+                num_list.get(index).set(10,(long)0);
+                num_list.get(index).set(11,(long)0);
+                num_list.get(index).set(12,(long)0);
+                num_list.get(index).set(13,(long)0);
+                num_list.get(index).set(14,(long)0);
+                num_list.get(index).set(15,(long)0);
             }
 
 
